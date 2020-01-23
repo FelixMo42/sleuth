@@ -1,11 +1,5 @@
 const chalk   = require("chalk")
-const Crawler = require("./Crawler")
-const fs      = require("fs-extra")
-const path    = require("path")
-const robots  = require('robots-txt-parse')
-const { Readable } = require('stream')
-const _ = require("lodash")
-
+const Crawler = require("./crawler/Crawler")
 
 class CTF {
     constructor({name, flagPattern}) {
@@ -39,50 +33,27 @@ let picoCTF = new CTF({
 
 let { use, add } = new Crawler()
 
-// print out that we visited the url
-use( ({url})  => console.log(`visiting ${url.href}`))
+use( ({body}) => picoCTF.findFlag(body) )
 
-// try to find the flag in the page
-use( ({body}) => picoCTF.findFlag(body))
+use( require("./crawler/use/logger")() )
+use( require("./crawler/use/robots")() )
+use( require("./crawler/use/save")() )
 
-// if robots.txt, then parse it and add found pages
-use( ({url, body}) => {
-    if (  _.last(url.pathname.split("/")) == "robots.txt" ) {
-        robots( Readable.from(body) )
-            .then((robots) => {
-                for (let group of robots.groups) {
-                    for (let rule of group.rules) {
-                        add( new URL(rule.path, "https://2019shell1.picoctf.com/problem/45102/") )
-
-                        if (path.isAbsolute(rule.path)) {
-                            add( new URL("." + rule.path, "https://2019shell1.picoctf.com/problem/45102/") )
-                        }
-                    }
-                }
-            })
-            .catch((err) => {
-                console.log(err)
-            })
-    }
-} )
-
-fs.emptyDir("./out/scrape")
-
-// save the files
-use( ({url, body}) => {
-    let extra = url.pathname.charAt(url.pathname.length - 1) == "/" ? "__index__" : ""
-    fs.outputFile(`./out/scrape/${url.hostname}${url.pathname}${extra}`)
-} )
+let fragments = [
+    "/robots.txt",
+    "/sitemap.xml",
+    "/login.html",
+    "/login.php"
+]
 
 function search(url) {
     add( new URL(url) )
 
-    add( new URL("/robots.txt", url) )
-    add( new URL("./robots.txt", url) )
-
-    add( new URL("/sitemap.xml", url) )
-    add( new URL("./sitemap.xml", url) )
+    for (let fragment of fragments) {
+        add( new URL(fragment, url) )
+        add( new URL("." + fragment, url) )
+    }
 }
 
 
-scrape("https://2019shell1.picoctf.com/problem/45102/")
+search("https://2019shell1.picoctf.com/problem/37868/")
