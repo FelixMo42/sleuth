@@ -74,10 +74,14 @@ use( ({url, body}) => {
     fs.outputFile(`./out/scrape/${url.hostname}${url.pathname}${extra}`)
 } )
 
-function scrape(url) {
+function search(url) {
     add( new URL(url) )
+
     add( new URL("/robots.txt", url) )
     add( new URL("./robots.txt", url) )
+
+    add( new URL("/sitemap.xml", url) )
+    add( new URL("./sitemap.xml", url) )
 }
 
 
