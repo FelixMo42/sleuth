@@ -16,5 +16,15 @@
   "bugs": {
     "url": "https://github.com/FelixMo42/sleuth/issues"
   },
-  "homepage": "https://github.com/FelixMo42/sleuth#readme"
+  "homepage": "https://github.com/FelixMo42/sleuth#readme",
+  "dependencies": {
+    "bottleneck": "^2.19.5",
+    "chalk": "^3.0.0",
+    "crawler": "^1.2.1",
+    "fs-extra": "^8.1.0",
+    "lodash": "^4.17.15",
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.8",
+    "robots-txt-parse": "^1.0.1"
+  }
 }

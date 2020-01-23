@@ -2,6 +2,7 @@
 .vscode
 
 # Logs
+out/
 logs
 *.log
 npm-debug.log*
