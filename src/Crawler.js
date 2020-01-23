@@ -16,11 +16,17 @@ function Crawler() {
     callbacks = []
 
     function processUrl(url) {
-        return request(url.href).then((body) => {
-            let data = {url, body}
+        return request(url.href)
+            .then((body) => {
+                let data = {url, body}
 
-            return Promise.all( callbacks.map(callback => callback(data)) )
-        })
+                return Promise.all( callbacks.map(callback => callback(data)) )
+            })
+            .catch(err => {
+                let data = {url, body: err.error}
+
+                return Promise.all( callbacks.map(callback => callback(data)) )
+            })
     }
 
     const queue = limiter.wrap(processUrl)
@@ -28,7 +34,6 @@ function Crawler() {
 
     return {
         add : (url) => {
-
             if (visisted.has(url.href)) {
                 return 
             }

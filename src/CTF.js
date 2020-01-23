@@ -39,15 +39,26 @@ let picoCTF = new CTF({
 
 let { use, add } = new Crawler()
 
+// print out that we visited the url
 use( ({url})  => console.log(`visiting ${url.href}`))
+
+// try to find the flag in the page
 use( ({body}) => picoCTF.findFlag(body))
 
+// if robots.txt, then parse it and add found pages
 use( ({url, body}) => {
-
     if (  _.last(url.pathname.split("/")) == "robots.txt" ) {
         robots( Readable.from(body) )
             .then((robots) => {
-                console.log(robots)
+                for (let group of robots.groups) {
+                    for (let rule of group.rules) {
+                        add( new URL(rule.path, "https://2019shell1.picoctf.com/problem/45102/") )
+
+                        if (path.isAbsolute(rule.path)) {
+                            add( new URL("." + rule.path, "https://2019shell1.picoctf.com/problem/45102/") )
+                        }
+                    }
+                }
             })
             .catch((err) => {
                 console.log(err)
@@ -55,5 +66,19 @@ use( ({url, body}) => {
     }
 } )
 
-add( new URL("https://2019shell1.picoctf.com/problem/45102/") )
-add( new URL("https://2019shell1.picoctf.com/problem/45102/robots.txt") )
+fs.emptyDir("./out/scrape")
+
+// save the files
+use( ({url, body}) => {
+    let extra = url.pathname.charAt(url.pathname.length - 1) == "/" ? "__index__" : ""
+    fs.outputFile(`./out/scrape/${url.hostname}${url.pathname}${extra}`)
+} )
+
+function scrape(url) {
+    add( new URL(url) )
+    add( new URL("/robots.txt", url) )
+    add( new URL("./robots.txt", url) )
+}
+
+
+scrape("https://2019shell1.picoctf.com/problem/45102/")
